@@ -61,14 +61,28 @@ function(projectName, projectDir=NA, pictureDir=NA, imageJLoc="loc2", diskDiam =
 	}
 	else{		
 		script <- file.path(.libPaths(), "diskImageR", "IJ_diskImageR.ijm")[1]
-		if (imageJLoc=="default" | imageJLoc=="loc2" ){
-			if (imageJLoc=="loc2"){
-				call <- paste("/Applications/ImageJ/ImageJ.app/Contents/MacOS/JavaApplicationStub -batch", script, IJarguments, sep=" ")}
-			if (imageJLoc=="default"){
-				call <- paste("/Applications/ImageJ.app/Contents/MacOS/JavaApplicationStub -batch", script, IJarguments, sep=" ")}
+		imageJPath <- "";
+		if (.Platform["OS.type"] == "windows")
+		{
+		  imageJPath <- '"C:\\Program Files\\ImageJ\\ImageJ.exe"';
 		}
-		else {call <- paste(imageJLoc,  "-batch", script, IJarguments, sep=" ")
+		else
+		{
+		  if (imageJLoc == "loc2")
+		  {
+		    imageJPath <- "/Applications/ImageJ/ImageJ.app/Contents/MacOS/JavaApplicationStub";
+		  }
+		  else if (imageJLoc == "default")
+		  {
+		    imageJPath <- "/Applications/ImageJ.app/Contents/MacOS/JavaApplicationStub";
+		  }
+		  else
+		  {
+		    imageJPath <- imageJLoc;
+		  }
 		}
+		call <- paste(imageJPath, " -batch", script, IJarguments, sep=" ");
+		call <- gsub("/", "\\\\", call);
 		system(call)
 	}
 	
