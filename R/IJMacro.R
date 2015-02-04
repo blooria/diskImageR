@@ -81,8 +81,13 @@ function(projectName, projectDir=NA, pictureDir=NA, imageJLoc="loc2", diskDiam =
 		    imageJPath <- imageJLoc;
 		  }
 		}
+    
 		call <- paste(imageJPath, " -batch", script, IJarguments, sep=" ");
-		call <- gsub("/", "\\\\", call);
+		if (.Platform["OS.type"] == "windows")
+		{
+		  call <- gsub("/", "\\\\", call);
+		}
+    
 		system(call)
 	}
 	
