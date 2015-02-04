@@ -19,9 +19,9 @@ createDataframe(projectName, clearHalo, diskDiam = 6, maxDist = 30,
 
 \item{nameVector}{either a logial value or a character vector. Supported values are \code{nameVector} = "TRUE" to assign the photograph name to the 'name' column, \code{nameVector} = "FALSE" to assign th photograph number to the 'name' column, or \code{nameVector} = a vector the same length as the number of photographs indicating the desired names.}
 
-\item{typeVector}{a logical value. \code{typeVector} = "TRUE" will add a 'type' vector to the dataframe using values found in the \code{typePlace} position of the photograph names (see \code{\link{runIJ}} for more details) while \code{typeVector} = "FALSE" will not add a type column.}
+\item{typeVector}{a logical value. \code{typeVector} = "TRUE" will add a 'type' vector to the dataframe using values found in the \code{typePlace} position of the photograph names (see \code{\link{IJMacro}} for more details) while \code{typeVector} = "FALSE" will not add a type column.}
 
-\item{typePlace}{a number that indicates the position of the photograph name to be stored as the 'type' vector'. Defaults to 2. For more details see \code{\link{runIJ}}}
+\item{typePlace}{a number that indicates the position of the photograph name to be stored as the 'type' vector'. Defaults to 2. For more details see \code{\link{IJMacro}}}
 
 \item{typeName}{a character string that indicates what to name the typeVector. Defaults to "type".}
 }
@@ -35,7 +35,7 @@ Writes the main dataframe with resistance, tolerance and sensitivity parameters
 A dataframe with 11 columns:
 \itemize{
 		\item\bold{name:} determined by \code{nameVector}, either photograph names, photograph numbers, or a user-supplied list of names
-	 	\item\bold{lines:} the first components of the \code{namesVector}; everything that comes before the first "_" in the photograph name
+	 	\item\bold{line:} the first components of the \code{namesVector}; everything that comes before the first "_" in the photograph name
 		\item\bold{type:} the location within the \code{name} of the phograph type is supplied by \code{typePlace}. Use \code{\link{addType}} if more than one type column are desired.
 		\item\bold{ZOI80, ZOI50, ZOI20:} resistance parameters, coresponding to the distance in mm of 80\%, 50\% and 20\% reduction in growth
 		\item\bold{fAUC80, fAUC50, fAUC20:} tolerance parameters, coresponding to the fraction of growth achieved above the 80\%, 50\% and 20\% reduction in growth points

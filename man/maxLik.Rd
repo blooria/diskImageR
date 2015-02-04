@@ -5,9 +5,9 @@
 \title{Maximum Likelihood Inference}
 \usage{
 maxLik(projectName, clearHalo, diskDiam = 6, maxDist = 30, ymax = 125,
-  xplots = 6, height = 10, width = 8, AUC = 50, ZOI = 50,
-  needML = TRUE, popUp = TRUE, plotNameVector = TRUE, overwrite = TRUE,
-  plotAUC = TRUE)
+  xplots = 5, height = 8, width = 8, AUC = 20, ZOI = "all",
+  needML = TRUE, popUp = TRUE, nameVector = TRUE, overwrite = TRUE,
+  plotAUC = TRUE, savePDF = TRUE, plotSub = NA)
 }
 \arguments{
 \item{projectName}{the short name in use for the project.}
@@ -34,11 +34,15 @@ maxLik(projectName, clearHalo, diskDiam = 6, maxDist = 30, ymax = 125,
 
 \item{popUp}{a logical value indicating whether to pop up the figure after it has been created.}
 
-\item{plotNameVector}{either a logial value or a vector. \code{plotNameVector} = "TRUE" will use the name of the photograph;  \code{plotNameVector} = "FALSE" will suppress adding a title to each plot. Conversely, a vector the same length as the number of photographs can be supplied. Defaults to TRUE.}
+\item{nameVector}{either a logial value indicating whether to plot the photograph names above the graph or not or a vector the same length as the number of pictures containing the desired names. Defaults to TRUE.}
 
 \item{overwrite}{a logical value indicating whether to overwrite existing figures created on the same day for the same project name.defaults to TRUE.}
 
 \item{plotAUC}{a logical value indicating whether to plot the AUC or not. Defaults to TRUE}
+
+\item{savePDF}{a logical value indicating whether to save a PDF file or open a new quartz. Defaults to TRUE.}
+
+\item{plotSub}{allows you to plot only a subset of photographs - indicate with a vector the corresponding numeric indices of the data you wish to plot. Photographs are numbered alphabetically by name, and the photograph numbers can also be found by using the showNum option in \code{\link{plotRaw}}. Defaults to NA, which will plot data from all photographs. Note this does not affect the analysis component, all data is always analyzed.}
 }
 \value{
 Two lists, ML and ML2 are saved to the global environment. A pdf file with one plot for each photograph is saved to visualize the results of curve fitting, zone of inhibition (resistance) and the area under the curve (tolerance).
@@ -47,10 +51,10 @@ Two lists, ML and ML2 are saved to the global environment. A pdf file with one p
 Find the maximum likelihood point of a single and double logistic equation by nonlinear optimisation to parameterize the single and double logistic models to use for determination of resistance, tolerance, and sensitivity
 }
 \details{
-\code{\link{maxLik}} searches for the maximum likelihood (ML) parameter for a single logistic and double logistic equation using the pixel intensity information previously determined from \code{\link{runIJ}}. The equations fit are
+\code{\link{maxLik}} searches for the maximum likelihood (ML) parameter for a single logistic and double logistic equation using the pixel intensity information previously determined from \code{\link{IJMacro}}. The equations fit are
  \deqn{single ('ML'): y = asymA*exp(scalA(x-od50A))\(1+exp(scalA(x-od50A)))+N(0, \sigma)}
  \deqn{double ('ML2'): y = asymA*exp(scalA(x-od50A))\(1+exp(scalA(x-od50A)))+asymB*exp(scalB(x-od50B)))\(1+exp(scalB(x-od50B)))+N(0, \sigma)}
-where asymA and asymB are the two asymptotes, od50A and odB are the midpoints (of the two curves), scalA and scalB are the slopes at odA and odB divided by asymA/4 and asymB/4, respectively. Specifically, \code{\link{maxLik}} uses the\code{\link{subplex}} method of \code{\link{optim}}, as implemented in \code{\link[diversitree]{find.mle}}.  The single logistic is the essentially the same as the double, yet fits only a single asymptote, midpoint and slope. The results from the double logistic fit are used in \code{\link{createDataframe}} to find the resistance points as well as to fit the area under the curve and thus tolerance, the single logistic is used to determine the midpoint of the curve which is later used to find sensitivity, i.e., the slope at this midpoint.
+where asymA and asymB are the two asymptotes, od50A and odB are the midpoints (of the two curves), scalA and scalB are the slopes at odA and odB divided by asymA/4 and asymB/4, respectively. Specifically, \code{\link{maxLik}} uses the\code{\link[subplex]{subplex}} method of \code{\link{optim}}, as implemented in \code{\link[diversitree]{find.mle}}.  The single logistic is the essentially the same as the double, yet fits only a single asymptote, midpoint and slope. The results from the double logistic fit are used in \code{\link{createDataframe}} to find the resistance points as well as to fit the area under the curve and thus tolerance, the single logistic is used to determine the midpoint of the curve which is later used to find sensitivity, i.e., the slope at this midpoint.
 }
 \author{
 Aleeza C. Gerstein

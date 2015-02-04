@@ -7,7 +7,7 @@
 plotRaw(projectName, ymin = 0, ymax = 250, xmin = 0, xmax = 40,
   xplots = 6, height = 4, width = 8, cexPt = 0.6, cexX = 0.8,
   cexY = 0.8, nameVector = TRUE, plotStandardLoc = TRUE,
-  showNum = FALSE, popUp = TRUE, overwrite = TRUE)
+  showNum = FALSE, popUp = TRUE, overwrite = TRUE, savePDF = TRUE)
 }
 \arguments{
 \item{projectName}{the short name to be used for the project}
@@ -26,9 +26,13 @@ plotRaw(projectName, ymin = 0, ymax = 250, xmin = 0, xmax = 40,
 
 \item{width}{a numeric value indicating the width of the pdf file generated}
 
-\item{cexPt,}{cexX, cexY a numeric value indicating the size to plot for points, x-axis text and y-axis text, respectively}
+\item{cexPt}{a numeric value indicating the size to plot for points}
 
-\item{nameVector}{either a logial value indicating whether to plot the name of the picture above the graph or not or a vector the same length as the number of pictures containing the desired names. Defaults to TRUE.}
+\item{cexX}{a numeric value indicating the size of x-axis text}
+
+\item{cexY}{a numeric value indicating the size of y-axis text}
+
+\item{nameVector}{either a logial value indicating whether to plot the photograph names above the graph or not or a vector the same length as the number of pictures containing the desired names. Defaults to TRUE.}
 
 \item{plotStandardLoc}{a logical value indicating whether to draw a dashed horizontal line at the standardization point}
 
@@ -37,11 +41,16 @@ plotRaw(projectName, ymin = 0, ymax = 250, xmin = 0, xmax = 40,
 \item{popUp}{a logical value indicating whether to pop up the figure after it has been created}
 
 \item{overwrite}{a logical value indicating whether to overwrite existing figures created on the same day for the same project name}
+
+\item{savePDF}{a logical value indicating whether to save a PDF file or open a new quartz. Defaults to TRUE.}
 }
 \value{
 A pdf file with one plot for each photograph is saved to visualize the results of imageJ analyses
 }
 \description{
 This function creates a pdf figure of plots showing the results of the imageJ analysis, with one plot for each picture. This function is primarily for visualization purposes.
+}
+\author{
+Aleeza c. Gerstein
 }
 

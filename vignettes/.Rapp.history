@@ -1,0 +1,1023 @@
+maxLik("contrTest2", twoCurve=TRUE, maxDist=30)
+maxLik <- function(data, standardLoc = 0, dotedge=3, maxDist=30, ymax=200, xplots = 6, maxSlope = 20, popUp = TRUE, log=TRUE, nameVector=TRUE, twoCurve=FALSE){#
+	projectName <- data#
+	fileFolder <- paste(Sys.Date(), projectName, sep="_")#
+	dir.create(paste(getwd(), "/figures/", sep=""), showWarnings= FALSE)#
+	dir.create(paste(getwd(), "/figures/", fileFolder, sep=""), showWarnings= FALSE)#
+	dir.create(paste(getwd(), "/parameter_files/", projectName, sep=""), showWarnings=FALSE)#
+#
+	data <- eval(parse(text=data))#
+	if (is.logical(nameVector)){#
+		if (nameVector){label <- names(data)}		#
+		else {label <- rep("", length(data))}#
+		}#
+	else {label <- nameVector}	#
+#
+#which(data[[i]][,1] > standardLoc)[1]]#
+	###The likelihoic part:#
+	if (!is.logical(standardLoc)){#
+#		dotMax <- max(sapply(data, function(x) {x[standardLoc,2]})) #
+		dotMax <- max(sapply(data, function(x) {x[which(x[,1] > standardLoc)[1], 2]})) 		#
+#		standMax <-c( sapply(data, function(x) {dotMax-x[standardLoc,2]}))#
+		standMax <-c( sapply(data, function(x) {dotMax-x[which(x[,1] > standardLoc)[1], 2]}))#
+		}#
+	else{#
+		standMax <- rep(0, length(data))#
+		}#
+	if (log){#
+		if(twoCurve){#
+			ML <-lapply(c(1:length(data)), getstatsLog, data=data, dotedge=dotedge, maxDist=maxDist, stand=standMax, maxSlope=maxSlope)#
+			ML2 <- lapply(c(1:length(data)), getstats2curve, data=data, dotedge=dotedge, maxDist=maxDist, stand=standMax, maxSlope=maxSlope)#
+			}#
+		else{#
+			ML <-lapply(c(1:length(data)), getstatsLog, data=data, dotedge=dotedge, maxDist=maxDist, stand=standMax, maxSlope=maxSlope)#
+		}#
+		}	#
+	else{#
+		ML <-lapply(c(1:length(data)), getstats, data=data, dotedge=dotedge, maxDist=maxDist, stand=standMax, maxSlope=maxSlope)#
+		}#
+	names(ML) <- names(data)#
+	fileName <- paste(Sys.Date(), "_", projectName, sep="")#
+#
+	if (is.logical(nameVector)){#
+		if (nameVector){label <- names(data)}		#
+		else {label <- rep("", length(data))}#
+		}#
+	else {label <- nameVector}#
+#
+	t <- paste("figures/", Sys.Date(), "_", projectName , "/", projectName, "_MLfit.pdf", sep="")#
+	cat(paste("Saving figure: ", t, sep=""))#
+	xplots <- xplots#
+	if (ceiling(length(data)/xplots) < 6) {#
+		yplots<- ceiling(length(data)/xplots)}#
+	else {yplots<- 6}#
+	numpages <- ceiling(length(data)/(xplots*yplots))#
+	pdf(t, width=7, height=6)#
+	par(mfrow=c(yplots , xplots), mar=c(1,1,1,1), oma=c(4,5,1,1))#
+	if(twoCurve){#
+		for (k in 1:length(data)){#
+			plotMLCurve2Models(data, ML, ML2, stand=standMax, i =k, dotedge=dotedge, maxDist=maxDist, ymax=ymax, label=label[k])#
+			if(numpages == 1){#
+				if (k >= xplots*yplots-xplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				}#
+			if(numpages == 2){#
+				if (k >= xplots*yplots-xplots+1 & k < xplots*yplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				if (k >= 2*xplots*yplots-xplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				}				#
+			if(numpages == 3){#
+				if (k >= xplots*yplots-xplots+1 & k < xplots*yplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				if (k >= 2*xplots*yplots-xplots+1 & k < 2*xplots*yplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				if (k >= 3*xplots*yplots-xplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				}				#
+#
+			j <- 1#
+			while (j <= numpages){#
+				if (k %in% seq(1, j*yplots*xplots, by=xplots)) {axis(2, cex.axis=0.8, las=2)}#
+				j <- j+1#
+				}#
+			}#
+		}#
+#
+	if(!twoCurve){	#
+		if(log){#
+			for (k in 1:length(data)){#
+				plotRawMLCurveLog(data, ML, stand=standMax, i =k, dotedge=dotedge, maxDist=maxDist, ymax=ymax, label=label[k])#
+				if(numpages == 1){#
+					if (k >= xplots*yplots-xplots+1){#
+						axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+						}#
+					}#
+				if(numpages == 2){#
+					if (k >= xplots*yplots-xplots+1 & k < xplots*yplots+1){#
+						axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+						}#
+					if (k >= 2*xplots*yplots-xplots+1){#
+						axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+						}#
+					}				#
+				if(numpages == 3){#
+					if (k >= xplots*yplots-xplots+1 & k < xplots*yplots+1){#
+						axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+						}#
+					if (k >= 2*xplots*yplots-xplots+1 & k < 2*xplots*yplots+1){#
+						axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+						}#
+					if (k >= 3*xplots*yplots-xplots+1){#
+						axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+						}#
+					}				#
+#
+				j <- 1#
+				while (j <= numpages){#
+					if (k %in% seq(1, j*yplots*xplots, by=xplots)) {axis(2, cex.axis=0.8, las=2)}#
+					j <- j+1#
+					}#
+			}#
+		}#
+	}#
+	else{#
+		for (k in 1:length(data)){#
+			plotRawMLCurve(data, ML, stand=standMax, i =k, dotedge=dotedge, maxDist=maxDist, ymax=ymax, label=label)#
+		if(numpages == 1){#
+				if (k >= xplots*yplots-xplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				}#
+			if(numpages == 2){#
+				if (k >= xplots*yplots-xplots+1 & k < xplots*yplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				if (k >= 2*xplots*yplots-xplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				}				#
+			if(numpages == 3){#
+				if (k >= xplots*yplots-xplots+1 & k < xplots*yplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				if (k >= 2*xplots*yplots-xplots+1 & k < 2*xplots*yplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				if (k >= 3*xplots*yplots-xplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				}				#
+#
+			j <- 1#
+			while (j <= numpages){#
+				if (k %in% seq(1, j*yplots*xplots, by=xplots)) {axis(2, cex.axis=0.8, las=2)}#
+				j <- j+1#
+				}#
+		}#
+	}	#
+#
+	mtext("Distance from edge of disc", outer=TRUE, side=1, line=2, cex=1.2)#
+	mtext("Pixel density", outer=TRUE, side=2, line=1.5, cex=1.2)#
+	dev.off()#
+#
+	if(popUp){#
+		tt <- paste("open", t)#
+		system(tt)#
+	}#
+	cat(paste("\n", projectName, ".ML has been written to the global environment", sep=""))#
+	assign(paste(projectName, ".ML", sep=""), ML, envir=globalenv())#
+}
+maxLik("contrTest2", twoCurve=TRUE, maxDist=30)
+plotMLCurve2Models <- function(data, i, MLparam,MLparam2, stand=standMax,  ymax=200, dotedge=3, maxDist= 40, label="", both=FALSE){ #
+	startX <- which(data[[i]][,1] > dotedge+0.5)[1]#
+	stopX <- which(data[[i]][,1] > maxDist - 0.5)[1]#
+	data[[i]] <- data[[i]][startX:stopX, 1:2]#
+	data[[i]] <- subset(data[[i]], x != "NA")#
+	data[[i]]$x <- data[[i]]$x+ stand[i] -min(data[[i]]$x+stand[i])  #the micel only fits when it goes down to 0#
+	data[[i]]$distance <- data[[i]]$distance - (dotedge+0.5)#
+	xx <- seq(0, log(length(data[[i]][,1])), length=100) #
+	yy2<- curve2(MLparam2[[i]]$par[1], MLparam2[[i]]$par[2], MLparam2[[i]]$par[3], MLparam2[[i]]$par[5], MLparam2[[i]]$par[6], MLparam2[[i]]$par[7],xx) + standEdge[i] #
+	plot(data[[i]]$distance, data[[i]]$x, type="p", ylim=c(0, ymax), xaxt="n", yaxt="n", xlab="", ylab="", cex=0.8)#
+	points(xx, yy2, type="l", col="red", lwd=2)#
+	if (!both){#
+		yy<- curve(MLparam[[i]]$par[1], MLparam[[i]]$par[2], MLparam[[i]]$par[3],xx)#
+		points(xx, yy, type="l", col="green", lwd=2)#
+	}#
+    axis(2, las=2, at=c(0, ymax*0.25, ymax*0.5, ymax*0.75, ymax), labels=FALSE)#
+    axis(1, labels=FALSE, at=c(0, 10, 20, 30, 40))#
+	abline(v=exp(MLparam2[[i]]$par[2]))#
+	abline(v=exp(MLparam2[[i]]$par[6]))#
+	abline(h=MLparam2[[i]]$par[1] + MLparam2[[i]]$par[5] #
+    mtext(label, side=3, cex=0.6)#
+# 	mtext("Distance from edge of disc", outer=FALSE, side=1, line=2.5, cex=1.2)##
+#	mtext("Pixel density", outer=FALSE, side=2, line=3, cex=1.2)#
+	}
+plotMLCurve2Models <- function(data, i, MLparam,MLparam2, stand=standMax,  ymax=200, dotedge=3, maxDist= 40, label="", both=FALSE){ #
+	startX <- which(data[[i]][,1] > dotedge+0.5)[1]#
+	stopX <- which(data[[i]][,1] > maxDist - 0.5)[1]#
+	data[[i]] <- data[[i]][startX:stopX, 1:2]#
+	data[[i]] <- subset(data[[i]], x != "NA")#
+	data[[i]]$x <- data[[i]]$x+ stand[i] -min(data[[i]]$x+stand[i])  #the micel only fits when it goes down to 0#
+	data[[i]]$distance <- data[[i]]$distance - (dotedge+0.5)#
+	xx <- seq(0, log(length(data[[i]][,1])), length=100) #
+	yy2<- curve2(MLparam2[[i]]$par[1], MLparam2[[i]]$par[2], MLparam2[[i]]$par[3], MLparam2[[i]]$par[5], MLparam2[[i]]$par[6], MLparam2[[i]]$par[7],xx) + standEdge[i] #
+	plot(data[[i]]$distance, data[[i]]$x, type="p", ylim=c(0, ymax), xaxt="n", yaxt="n", xlab="", ylab="", cex=0.8)#
+	points(xx, yy2, type="l", col="red", lwd=2)#
+	if (!both){#
+		yy<- curve(MLparam[[i]]$par[1], MLparam[[i]]$par[2], MLparam[[i]]$par[3],xx)#
+		points(xx, yy, type="l", col="green", lwd=2)#
+	}#
+    axis(2, las=2, at=c(0, ymax*0.25, ymax*0.5, ymax*0.75, ymax), labels=FALSE)#
+    axis(1, labels=FALSE, at=c(0, 10, 20, 30, 40))#
+	abline(v=exp(MLparam2[[i]]$par[2]))#
+	abline(v=exp(MLparam2[[i]]$par[6]))#
+	abline(h=MLparam2[[i]]$par[1] + MLparam2[[i]]$par[5] )#
+    mtext(label, side=3, cex=0.6)#
+# 	mtext("Distance from edge of disc", outer=FALSE, side=1, line=2.5, cex=1.2)##
+#	mtext("Pixel density", outer=FALSE, side=2, line=3, cex=1.2)#
+	}
+maxLik("contrTest2", twoCurve=TRUE, maxDist=30)
+plotMLCurve2Models <- function(data, i, MLparam,MLparam2, stand=standMax,  ymax=200, dotedge=3, maxDist= 40, label="", both=FALSE){ #
+	startX <- which(data[[i]][,1] > dotedge+0.5)[1]#
+	stopX <- which(data[[i]][,1] > maxDist - 0.5)[1]#
+	data[[i]] <- data[[i]][startX:stopX, 1:2]#
+	data[[i]] <- subset(data[[i]], x != "NA")#
+	data[[i]]$x <- data[[i]]$x+ stand[i] -min(data[[i]]$x+stand[i])  #the micel only fits when it goes down to 0#
+	data[[i]]$distance <- data[[i]]$distance - (dotedge+0.5)#
+	xx <- seq(0, log(length(data[[i]][,1])), length=100) #
+	yy2<- curve2(MLparam2[[i]]$par[1], MLparam2[[i]]$par[2], MLparam2[[i]]$par[3], MLparam2[[i]]$par[5], MLparam2[[i]]$par[6], MLparam2[[i]]$par[7],xx) + stand[i]#
+	plot(data[[i]]$distance, data[[i]]$x, type="p", ylim=c(0, ymax), xaxt="n", yaxt="n", xlab="", ylab="", cex=0.8)#
+	points(xx, yy2, type="l", col="red", lwd=2)#
+	if (!both){#
+		yy<- curve(MLparam[[i]]$par[1], MLparam[[i]]$par[2], MLparam[[i]]$par[3],xx)#
+		points(xx, yy, type="l", col="green", lwd=2)#
+	}#
+    axis(2, las=2, at=c(0, ymax*0.25, ymax*0.5, ymax*0.75, ymax), labels=FALSE)#
+    axis(1, labels=FALSE, at=c(0, 10, 20, 30, 40))#
+	abline(v=exp(MLparam2[[i]]$par[2]))#
+	abline(v=exp(MLparam2[[i]]$par[6]))#
+	abline(h=MLparam2[[i]]$par[1] + MLparam2[[i]]$par[5] )#
+    mtext(label, side=3, cex=0.6)#
+# 	mtext("Distance from edge of disc", outer=FALSE, side=1, line=2.5, cex=1.2)##
+#	mtext("Pixel density", outer=FALSE, side=2, line=3, cex=1.2)#
+	}
+maxLik("contrTest2", twoCurve=TRUE, maxDist=30)
+data <- contrTest2
+label <- rep("", length(data))
+dotMax <- max(sapply(data, function(x) {x[which(x[,1] > standardLoc)[1], 2]}))
+standardLoc <- 0
+dotedge <- 3
+maxDist <- 30
+ymax <- 200
+xplots <- 6
+maxSlope <- 20
+dotMax <- max(sapply(data, function(x) {x[which(x[,1] > standardLoc)[1], 2]}))
+standMax <-c( sapply(data, function(x) {dotMax-x[which(x[,1] > standardLoc)[1], 2]}))
+ML <-lapply(c(1:length(data)), getstatsLog, data=data, dotedge=dotedge, maxDist=maxDist, stand=standMax, maxSlope=maxSlope)
+ML2 <- lapply(c(1:length(data)), getstats2curve, data=data, dotedge=dotedge, maxDist=maxDist, stand=standMax, maxSlope=maxSlope)
+compLik(ML, ML2)
+t <- compLik(ML, ML2)
+t
+compLik <- function(ML1, ML2){	#
+	numPar <- c()#
+	diff <- c()#
+#
+	for (i in 1:length(ML1)){#
+	diff[i] <- ML2[[i]]$lnLik	-ML1[[i]]$lnLik#
+		if (((ML2[[i]]$lnLik - ML1[[i]]$lnLik)*2) > qchisq(0.95, 3)) {numPar[i] <- "2par"}#
+		else {numPar[i] <- "1par"}	#
+		}#
+	return(list(diff, numPar))#
+	}
+t <- compLik(ML, ML2)
+t
+compLik <- function(ML1, ML2){	#
+	numPar <- c()#
+	diff <- c()#
+#
+	for (i in 1:length(ML1)){#
+	diff[i] <- ML2[[i]]$lnLik	-ML1[[i]]$lnLik#
+		if (((ML2[[i]]$lnLik - ML1[[i]]$lnLik)*2) > qchisq(0.95, 3)) {numPar[i] <- "2par"}#
+		else {numPar[i] <- "1par"}	#
+		}#
+	return(data.frame(diff, numPar))#
+	}
+t <- compLik(ML, ML2)
+t
+xplots <- xplots
+if (ceiling(length(data)/xplots) < 6) {#
+		yplots<- ceiling(length(data)/xplots)}
+yplots
+numpages <- ceiling(length(data)/(xplots*yplots))
+numpages
+par(mfrow=c(yplots , xplots), mar=c(1,1,1,1), oma=c(4,5,1,1))
+dev.off()
+par(mfrow=c(yplots , xplots), mar=c(1,1,1,1), oma=c(4,5,1,1))
+for (k in 1:length(data)){#
+			plotMLCurve2Models(data, ML, ML2, stand=standMax, i =k, dotedge=dotedge, maxDist=maxDist, ymax=ymax, label=label[k])
+if(numpages == 1){#
+				if (k >= xplots*yplots-xplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				}
+if(numpages == 2){#
+				if (k >= xplots*yplots-xplots+1 & k < xplots*yplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				if (k >= 2*xplots*yplots-xplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				}				#
+			if(numpages == 3){#
+				if (k >= xplots*yplots-xplots+1 & k < xplots*yplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				if (k >= 2*xplots*yplots-xplots+1 & k < 2*xplots*yplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				if (k >= 3*xplots*yplots-xplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				}				#
+#
+			j <- 1#
+			while (j <= numpages){#
+				if (k %in% seq(1, j*yplots*xplots, by=xplots)) {axis(2, cex.axis=0.8, las=2)}#
+				j <- j+1#
+				}#
+			}
+plotMLCurve2Models <- function(data, i, MLparam,MLparam2, stand=standMax,  ymax=200, dotedge=3, maxDist= 40, label="", both=FALSE){ #
+	startX <- which(data[[i]][,1] > dotedge+0.5)[1]#
+	stopX <- which(data[[i]][,1] > maxDist - 0.5)[1]#
+	data[[i]] <- data[[i]][startX:stopX, 1:2]#
+	data[[i]] <- subset(data[[i]], x != "NA")#
+	data[[i]]$x <- data[[i]]$x+ stand[i] -min(data[[i]]$x+stand[i])  #the micel only fits when it goes down to 0#
+	data[[i]]$distance <- data[[i]]$distance - (dotedge+0.5)#
+	xx <- seq(0, log(length(data[[i]][,1])), length=100) #
+	yy2<- curve2(MLparam2[[i]]$par[1], MLparam2[[i]]$par[2], MLparam2[[i]]$par[3], MLparam2[[i]]$par[5], MLparam2[[i]]$par[6], MLparam2[[i]]$par[7],xx) + stand[i]#
+	plot(data[[i]]$distance, data[[i]]$x, type="p", ylim=c(0, ymax), xaxt="n", yaxt="n", xlab="", ylab="", cex=0.8)#
+	points(exp(xx), yy2, type="l", col="red", lwd=2)#
+	if (!both){#
+		yy<- curve(MLparam[[i]]$par[1], MLparam[[i]]$par[2], MLparam[[i]]$par[3],xx)#
+		points(exp(xx), yy, type="l", col="green", lwd=2)#
+	}#
+    axis(2, las=2, at=c(0, ymax*0.25, ymax*0.5, ymax*0.75, ymax), labels=FALSE)#
+    axis(1, labels=FALSE, at=c(0, 10, 20, 30, 40))#
+	abline(v=exp(MLparam2[[i]]$par[2]))#
+	abline(v=exp(MLparam2[[i]]$par[6]))#
+	abline(h=MLparam2[[i]]$par[1] + MLparam2[[i]]$par[5] )#
+    mtext(label, side=3, cex=0.6)#
+# 	mtext("Distance from edge of disc", outer=FALSE, side=1, line=2.5, cex=1.2)##
+#	mtext("Pixel density", outer=FALSE, side=2, line=3, cex=1.2)#
+	}
+if(numpages == 2){#
+				if (k >= xplots*yplots-xplots+1 & k < xplots*yplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				if (k >= 2*xplots*yplots-xplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				}				#
+			if(numpages == 3){#
+				if (k >= xplots*yplots-xplots+1 & k < xplots*yplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				if (k >= 2*xplots*yplots-xplots+1 & k < 2*xplots*yplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				if (k >= 3*xplots*yplots-xplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				}				#
+#
+			j <- 1#
+			while (j <= numpages){#
+				if (k %in% seq(1, j*yplots*xplots, by=xplots)) {axis(2, cex.axis=0.8, las=2)}#
+				j <- j+1#
+				}#
+			}
+plotMLCurve2Models <- function(data, i, MLparam,MLparam2, stand=standMax,  ymax=200, dotedge=3, maxDist= 40, label="", both=FALSE){ #
+	startX <- which(data[[i]][,1] > dotedge+0.5)[1]#
+	stopX <- which(data[[i]][,1] > maxDist - 0.5)[1]#
+	data[[i]] <- data[[i]][startX:stopX, 1:2]#
+	data[[i]] <- subset(data[[i]], x != "NA")#
+	data[[i]]$x <- data[[i]]$x+ stand[i] -min(data[[i]]$x+stand[i])  #the micel only fits when it goes down to 0#
+	data[[i]]$distance <- data[[i]]$distance - (dotedge+0.5)#
+	xx <- seq(0, log(length(data[[i]][,1])), length=100) #
+	yy2<- curve2(MLparam2[[i]]$par[1], MLparam2[[i]]$par[2], MLparam2[[i]]$par[3], MLparam2[[i]]$par[5], MLparam2[[i]]$par[6], MLparam2[[i]]$par[7],xx) + stand[i]#
+	plot(data[[i]]$distance, data[[i]]$x, type="p", ylim=c(0, ymax), xaxt="n", yaxt="n", xlab="", ylab="", cex=0.8)#
+	points(exp(xx), yy2, type="l", col="red", lwd=2)#
+	if (!both){#
+		yy<- curve(MLparam[[i]]$par[1], MLparam[[i]]$par[2], MLparam[[i]]$par[3],xx)#
+		points(exp(xx), yy, type="l", col="green", lwd=2)#
+	}#
+    axis(2, las=2, at=c(0, ymax*0.25, ymax*0.5, ymax*0.75, ymax), labels=FALSE)#
+    axis(1, labels=FALSE, at=c(0, 10, 20, 30, 40))#
+	abline(v=exp(MLparam2[[i]]$par[2]))#
+	abline(v=exp(MLparam2[[i]]$par[6]))#
+	abline(h=MLparam2[[i]]$par[1] + MLparam2[[i]]$par[5] )#
+    mtext(label, side=3, cex=0.6)#
+# 	mtext("Distance from edge of disc", outer=FALSE, side=1, line=2.5, cex=1.2)##
+#	mtext("Pixel density", outer=FALSE, side=2, line=3, cex=1.2)#
+	}
+for (k in 1:length(data)){#
+			plotMLCurve2Models(data, ML, ML2, stand=standMax, i =k, dotedge=dotedge, maxDist=maxDist, ymax=ymax, label=label[k])#
+			if(numpages == 1){#
+				if (k >= xplots*yplots-xplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				}#
+			if(numpages == 2){#
+				if (k >= xplots*yplots-xplots+1 & k < xplots*yplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				if (k >= 2*xplots*yplots-xplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				}				#
+			if(numpages == 3){#
+				if (k >= xplots*yplots-xplots+1 & k < xplots*yplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				if (k >= 2*xplots*yplots-xplots+1 & k < 2*xplots*yplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				if (k >= 3*xplots*yplots-xplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				}				#
+#
+			j <- 1#
+			while (j <= numpages){#
+				if (k %in% seq(1, j*yplots*xplots, by=xplots)) {axis(2, cex.axis=0.8, las=2)}#
+				j <- j+1#
+				}#
+			}
+par(mfrow=c(yplots , xplots), mar=c(1,1,1,1), oma=c(4,5,1,1))
+for (k in 1:length(data)){#
+			plotMLCurve2Models(data, ML, ML2, stand=standMax, i =k, dotedge=dotedge, maxDist=maxDist, ymax=ymax, label=label[k])#
+			if(numpages == 1){#
+				if (k >= xplots*yplots-xplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				}#
+			if(numpages == 2){#
+				if (k >= xplots*yplots-xplots+1 & k < xplots*yplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				if (k >= 2*xplots*yplots-xplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				}				#
+			if(numpages == 3){#
+				if (k >= xplots*yplots-xplots+1 & k < xplots*yplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				if (k >= 2*xplots*yplots-xplots+1 & k < 2*xplots*yplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				if (k >= 3*xplots*yplots-xplots+1){#
+					axis(1, cex.axis=0.8, at=c(0, 10, 20, 30, 40), labels=c(0, 10, 20, 30, 40))#
+					}#
+				}				#
+#
+			j <- 1#
+			while (j <= numpages){#
+				if (k %in% seq(1, j*yplots*xplots, by=xplots)) {axis(2, cex.axis=0.8, las=2)}#
+				j <- j+1#
+				}#
+			}
+dotedge <- 3.25
+ML <-lapply(c(1:length(data)), getstatsLog, data=data, dotedge=dotedge, maxDist=maxDist, stand=standMax, maxSlope=maxSlope)#
+			ML2 <- lapply(c(1:length(data)), getstats2curve, data=data, dotedge=dotedge, maxDist=maxDist, stand=standMax, maxSlope=maxSlope)
+test <- compLik(ML, ML2)
+test
+data <- contrTest2
+ML <-lapply(c(1:length(data)), getstatsLog, data=data, dotedge=dotedge, maxDist=maxDist, stand=standMax, maxSlope=maxSlope)#
+			ML2 <- lapply(c(1:length(data)), getstats2curve, data=data, dotedge=dotedge, maxDist=maxDist, stand=standMax, maxSlope=maxSlope)#
+			test <- compLik(ML, ML2)
+`	if(twoCurve){
+}
+sdfasdlkjfas
+}}}{
+dsfk;alsdjf;kladjsf;lkadjsf;lkasd
+1
+q
+test
+{}{}{}{}
+"""""
+"
+}
+6
+^.
+'
+''''
+"""
+\\
+source("/Users/acgerstein/Documents/Postdoc/Research/0CommonFiles/RScript/discAssay1_5f.R")
+MAT5.t4 <- readInDir()
+maxLik("MAT5.t4", dotedge=3.5, ymax=200, xplots=6, twoCurve=TRUE)
+plotMLCurve2Models <- function(data, i, ML, ML2, stand=stand,  ymax=200, dotedge=3, maxDist= 35, percentileHigh = 0.8, label="", both=FALSE){ #
+	startX <- which(data[[i]][,1] > dotedge+0.5)[1]#
+	stopX <- which(data[[i]][,1] > maxDist - 0.5)[1]#
+	data[[i]] <- data[[i]][startX:stopX, 1:2]#
+	data[[i]]$x <- data[[i]]$x + stand[i] #
+	data[[i]]$distance <- data[[i]]$distance - (dotedge+0.5)#
+	xx <- seq(log(data[[i]]$distance[1]), log(max(data[[i]][,1])), length=200) #
+	yy2<- curve2(ML2[[i]]$par[1], ML2[[i]]$par[2], ML2[[i]]$par[3], ML2[[i]]$par[5], ML2[[i]]$par[6], ML2[[i]]$par[7],xx) #
+	plot(data[[i]]$distance, data[[i]]$x, type="p", ylim=c(0, ymax), xaxt="n", yaxt="n", xlab="", ylab="", cex=0.7, col=grey(0.4))#
+#	points(exp(xx)- (dotedge+0.5), yy2, type="l", col="red", lwd=2)#
+	slope <- max(ML2[[i]]$par[3], ML2[[i]]$par[7])#
+	if(slope > 0.001){#
+		points(exp(xx), yy2 + min(data[[i]]$x+stand[i]), type="l", col="red", lwd=2)	#
+		abline(v=exp(ML2[[i]]$par[2]), col="red", lty=2)#
+		abline(v=exp(ML2[[i]]$par[6]), col="red", lty=2)#
+		abline(h=ML2[[i]]$par[1] + ML2[[i]]$par[5] +  min(data[[i]]$x+stand[i]), col="red", lty=2)#
+#		abline(h=min(ML2[[i]]$par[1], ML2[[i]]$par[5]) +  min(data[[i]]$x+stand[i]), col="red", lty=2)#
+		abline(v=exp(xx[which.max(yy2 > yy2[length(yy2)]*0.9)]), col="blue", lwd=2) #
+	}#
+	if (both){#
+		yy<- curve(ML[[i]]$par[1], ML[[i]]$par[2], ML[[i]]$par[3],xx)#
+		points(exp(xx), yy + min(data[[i]]$x+stand[i]), type="l", col="green", lwd=2)#
+		abline(v=exp(ML[[i]]$par[2]), col="green", lty=2)#
+		abline(h=ML[[i]]$par[1], col="green", lty=2)			#
+	}#
+    axis(2, las=2, at=c(0, ymax*0.25, ymax*0.5, ymax*0.75, ymax), labels=FALSE)#
+    axis(1, labels=FALSE, at=c(0, 10, 20, 30, 40))#
+    mtext(label, side=3, cex=0.6)#
+#
+# 	mtext("Distance from edge of disc", outer=FALSE, side=1, line=2.5, cex=1.2)##
+#	mtext("Pixel density", outer=FALSE, side=2, line=3, cex=1.2)#
+	}#
+#exp(xx[which.max(yy2 > yy2[100]*0.9)])
+maxLik("MAT5.t4", dotedge=3.5, ymax=200, xplots=6, twoCurve=TRUE)
+MAT5.t4.ML2[[1]]
+data <- MAT5.t4#
+standardLoc <- 0
+dotMax <- max(sapply(data, function(x) {x[which(x[,1] > standardLoc)[1], 2]})) 		#
+stand <-c( sapply(data, function(x) {dotMax-x[which(x[,1] > standardLoc)[1], 2]}))
+stand
+range(stand)
+range(stand)[2]
+seq(0, 3, 100)
+for (i in seq(0, 3, 0.1)
+}
+?append
+standMax <- c()#
+for (i in seq(0, 3, 0.1){#
+	standardLox <- i#
+	append(standMax, range(stand)[2])#
+	}
+standMax <- c()#
+for (i in seq(0, 3, 0.1)){#
+	standardLox <- i#
+	append(standMax, range(stand)[2])#
+	}
+standMax
+standMax <- c()#
+for (i in seq(0, 3, 0.1)){#
+	standardLox <- i#
+	dotMax <- max(sapply(data, function(x) {x[which(x[,1] > standardLoc)[1], 2]})) 		#
+	stand <-c( sapply(data, function(x) {dotMax-x[which(x[,1] > standardLoc)[1], 2]}))	#
+	append(standMax, range(stand)[2])#
+	}
+standMax
+seq(0, 3, 0.1))
+seq(0, 3, 0.1)
+standMax <- c()#
+for (i in seq(0, 3, 0.1)){#
+	standardLoc <- i#
+	dotMax <- max(sapply(data, function(x) {x[which(x[,1] > standardLoc)[1], 2]})) 		#
+	stand <-c( sapply(data, function(x) {dotMax-x[which(x[,1] > standardLoc)[1], 2]}))	#
+	append(standMax, range(stand)[2])#
+	}
+standMax
+i <- 0
+dotMax <- max(sapply(data, function(x) {x[which(x[,1] > standardLoc)[1], 2]}))
+stand <-c( sapply(data, function(x) {dotMax-x[which(x[,1] > standardLoc)[1], 2]}))
+stand
+range(stand)[2]
+append(standMax, range(stand)[2])
+standMax <- append(standMax, range(stand)[2])
+standMax
+standMax <- c()#
+for (i in seq(0, 3, 0.1)){#
+	standardLoc <- i#
+	dotMax <- max(sapply(data, function(x) {x[which(x[,1] > standardLoc)[1], 2]})) 		#
+	stand <-c( sapply(data, function(x) {dotMax-x[which(x[,1] > standardLoc)[1], 2]}))	#
+	standMax <- append(standMax, range(stand)[2])#
+	}
+standMax
+min(standMax)
+standMax <- c()#
+for (i in seq(0, 3, 0.01)){#
+	standardLoc <- i#
+	dotMax <- max(sapply(data, function(x) {x[which(x[,1] > standardLoc)[1], 2]})) 		#
+	stand <-c( sapply(data, function(x) {dotMax-x[which(x[,1] > standardLoc)[1], 2]}))	#
+	standMax <- append(standMax, range(stand)[2])#
+	}
+standMax
+min(standMax)
+plotRaw("MAT5.t4",  ymax = 275, xmax = 35, dotedge = 3.5)
+plotRaw("MAT5.t4",  ymax = 275, xmax = 35, dotedge = 3)
+plotRaw("MAT5.t4",  ymax = 325, xmax = 35, dotedge = 3)
+plotRaw("MAT5.t4",  ymax = 325, xmax = 35, dotedge = 4)
+plotRaw("MAT5.t4",  ymax = 325, xmax = 35, dotedge = 4, standardLoc = 4)
+plotRaw("MAT5.t4",  ymax = 400, xmax = 35, dotedge = 4, standardLoc = 4)
+maxLik("MAT5.t4", dotedge=4, ymax=200, xplots=6, twoCurve=TRUE, standardLoc = 4)
+data <- MAT5.t4#
+standardLoc <- 4#
+dotMax <- max(sapply(data, function(x) {x[which(x[,1] > standardLoc)[1], 2]})) 		#
+stand <-c( sapply(data, function(x) {dotMax-x[which(x[,1] > standardLoc)[1], 2]}))
+plotMLCurve2Models(MAT5.t4, 1, MAT5.t4.ML, MAT5.t4.ML2, stand = stand, dotedge = 4)
+devdev.capabilitiesdev.capabilitiesdev.capabilities
+library(lme4)#
+library(lmerTest)#
+ cv <-function(x) sd(x,na.rm=TRUE)/mean(x,na.rm=TRUE)#
+d <- read.csv("/Users/acgerstein/Documents/Postdoc/Research/TLO/Noise/Noise non-flow/microscopy/motherDaughter/Mother_Daughter_TLO_expression_final.csv", sep=",")#
+d <- d[,1:3]#
+d$LT <- paste(d$Line, d$Type, sep=".")#
+ddn <- split(d, d$LT)#
+numcells <- sapply(ddn, function(x) length(x[,1]))#
+range(numcells)[1] #50 is the smallest#
+#
+ddnS <- lapply(ddn, function(x) sample(x$Expression, 50))#
+Col <- sapply(as.character(names(ddn)), function(x) strsplit(x, "[.]")[[1]][1])#
+Type <- sapply(as.character(names(ddn)), function(x) strsplit(x, "[.]")[[1]][2])#
+#
+dS <- data.frame(Line = rep(Col, each=50), Type = rep(Type, each=50), Expression=unlist(ddnS))#
+dS$Expression[dS$Expression <= 0] <- 0.0001#
+dS$Expression <- log(dS$Expression)
+is.factor(ds$Type)
+is.factor(dS$Type)
+library(KernSmooth)
+source("/Users/acgerstein/Documents/Postdoc/Research/0CommonFiles/RScript/discAssay2.R")
+library(zoo)
+F5DY<-readInExisting()
+maxLik("F5DY", clearHalo = 28, maxDist = 30, xplots=4)
+createDataframe("F5DY", clearHalo = 28)
+source("/Users/acgerstein/Documents/Postdoc/Research/0CommonFiles/RScript/discAssay2.R")
+createDataframe("F5DY", clearHalo = 28)
+findAUC <- function(data, ML, ML2, stand, clearHaloStand, ZOIcor, dotedge = 3.4, maxDist = 35, ymax = 200, standardLoc = 2.5, percentileLow = 0.2,  i){	#
+	startX <- which(data[[i]][,1] > dotedge+0.5)[1]#
+	stopX <- which(data[[i]][,1] > maxDist - 0.5)[1]#
+	data[[i]] <- data[[i]][startX:stopX, 1:2]#
+	data[[i]]$x <- data[[i]]$x + stand[i] - clearHaloStand #
+	data[[i]]$distance <- data[[i]]$distance - (dotedge+0.5)#
+	xx <- seq(log(data[[i]]$distance[1]), log(max(data[[i]][,1])), length=200) #
+	yy<- curve2(ML2[[i]]$par[1], ML2[[i]]$par[2], ML2[[i]]$par[3], ML2[[i]]$par[5], ML2[[i]]$par[6], ML2[[i]]$par[7], xx) #
+	ic50 <- ML[[i]]$par[2]	#
+	ploty <- data[[i]]$x#
+	ploty[ploty < 0] <-0#
+	yhalo <- (yy[which.max(yy> yy[length(yy)] * percentileLow)]+min(data[[i]]$x))#
+	xhalo <- exp(xx[which.max(yy> yy[length(yy)] * 0.9)])		#
+	x50 <- exp(xx[which.max(yy> yy[length(yy)] * 0.5)])			#
+	minHalo <- exp(xx[which.max(yy> yy[length(yy)] * percentileLow)])		#
+	ZOI <- xhalo		#
+	slope <- ML[[i]]$par[3]#
+	if(slope > 1){		#
+			 xx <- seq(maxDist-1, maxDist, length=10)#
+			yy<- curve2(ML2[[i]]$par[1], ML2[[i]]$par[2], ML2[[i]]$par[3], ML2[[i]]$par[5], ML2[[i]]$par[6], ML2[[i]]$par[7], log(xx)) #
+			yy <- (yy+min(data[[i]]$x))#
+			yy <- (yy+min(data[[i]]$x))*ZOIcor[i]#
+			id <- order(xx)#
+			maxAUC <- sum(diff(xx[id])*rollmean(yy[id], 2))	#
+		xx <- seq(log(data[[i]]$distance[1]), log(max(data[[i]][,1])), length=200) 	#
+		xx50 <- exp(xx[1:which.max(exp(xx) > x50)-1])		#
+#		xx50 <- exp(xx[1:which.max(exp(xx) > exp(ic50))-1])		#
+		xx90 <- exp(xx[1:which.max(exp(xx) > xhalo)-1])				#
+#		xx <- exp(xx[1:which.max(exp(xx) > xhalo)-1])#
+		if(length(xx50) == 0){#
+			xx50 <- seq(log(data[[i]]$distance[1]), log(max(data[[i]][,1])), length=200) #
+			}			#
+		yy50<- curve2(ML2[[i]]$par[1], ML2[[i]]$par[2], ML2[[i]]$par[3], ML2[[i]]$par[5], ML2[[i]]$par[6], ML2[[i]]$par[7], log(xx50)) #
+		yy90<- curve2(ML2[[i]]$par[1], ML2[[i]]$par[2], ML2[[i]]$par[3], ML2[[i]]$par[5], ML2[[i]]$par[6], ML2[[i]]$par[7], log(xx90)) #
+#		yy <- (yy+min(data[[i]]$x))*ZOIcor[i]#
+		yy50 <- (yy50+min(data[[i]]$x))#
+		yy90 <- (yy90+min(data[[i]]$x))	#
+		yy50[yy50  < 0] <-0#
+		yy50[yy50 ==NaN] <- 0#
+		yy90[yy90  < 0] <-0#
+		yy90[yy90 ==NaN] <- 0#
+		id50 <- order(xx50)#
+		id90 <- order(xx90)#
+		if (length(xx50) > 1){#
+			AUC50 <- sum(diff(xx50[id50])*rollmean(yy50[id50], 2))		#
+			}#
+		else{#
+			AUC50 <- 0#
+			}#
+		if (length(xx90) > 1){#
+			AUC90 <- sum(diff(xx90[id90])*rollmean(yy90[id90], 2))		#
+			}#
+		else{#
+			AUC90 <- 0#
+			}#
+		return(list(ZOI = ZOI, minHalo = minHalo, AUC50= AUC50, AUC90 = AUC90, maxAUC = maxAUC))	#
+		}#
+	if(slope < 1){#
+		minHalo <- 0#
+		ZOI <- 0#
+		yy <- (yy+min(data[[i]]$x))*ZOIcor[i]#
+		yy[yy < 0] <- 0#
+		xx <- exp(xx)#
+		id <- order(xx)#
+		AUC <- sum(diff(xx[id])*rollmean(yy[id], 2))#
+		maxAUC <- 1#
+	}#
+	return(list(ZOI = ZOI, minHalo = minHalo, AUC= AUC, maxAUC = maxAUC))		#
+}
+findAUC <- function(data, ML, ML2, stand, clearHaloStand, ZOIcor, dotedge = 3.4, maxDist = 35, ymax = 200, standardLoc = 2.5, percentileLow = 0.2,  i){	#
+	startX <- which(data[[i]][,1] > dotedge+0.5)[1]#
+	stopX <- which(data[[i]][,1] > maxDist - 0.5)[1]#
+	data[[i]] <- data[[i]][startX:stopX, 1:2]#
+	data[[i]]$x <- data[[i]]$x + stand[i] - clearHaloStand #
+	data[[i]]$distance <- data[[i]]$distance - (dotedge+0.5)#
+	xx <- seq(log(data[[i]]$distance[1]), log(max(data[[i]][,1])), length=200) #
+	yy<- curve2(ML2[[i]]$par[1], ML2[[i]]$par[2], ML2[[i]]$par[3], ML2[[i]]$par[5], ML2[[i]]$par[6], ML2[[i]]$par[7], xx) #
+	ic50 <- ML[[i]]$par[2]	#
+	ploty <- data[[i]]$x#
+	ploty[ploty < 0] <-0#
+	yhalo <- (yy[which.max(yy> yy[length(yy)] * percentileLow)]+min(data[[i]]$x))#
+	xhalo <- exp(xx[which.max(yy> yy[length(yy)] * 0.9)])	#
+	x50 <- exp(xx[which.max(yy> yy[length(yy)] * 0.5)])						#
+	minHalo <- exp(xx[which.max(yy> yy[length(yy)] * percentileLow)])		#
+	ZOI <- xhalo	#
+	slope <- ML[[i]]$par[3]#
+	if(slope > 1){		#
+			 xx <- seq(maxDist-1, maxDist, length=10)#
+			yy<- curve2(ML2[[i]]$par[1], ML2[[i]]$par[2], ML2[[i]]$par[3], ML2[[i]]$par[5], ML2[[i]]$par[6], ML2[[i]]$par[7], log(xx)) #
+			yy <- (yy+min(data[[i]]$x))#
+			yy <- (yy+min(data[[i]]$x))*ZOIcor[i]#
+			id <- order(xx)#
+			maxAUC <- sum(diff(xx[id])*rollmean(yy[id], 2))	#
+		xx <- seq(log(data[[i]]$distance[1]), log(max(data[[i]][,1])), length=200) 	#
+		xx50 <- exp(xx[1:which.max(exp(xx) > x50)-1])		#
+		xx90 <- exp(xx[1:which.max(exp(xx) > xhalo)-1])#
+		if(length(xx50) == 0){#
+			xx50 <- seq(log(data[[i]]$distance[1]), log(max(data[[i]][,1])), length=200) #
+			}#
+		yy50<- curve2(ML2[[i]]$par[1], ML2[[i]]$par[2], ML2[[i]]$par[3], ML2[[i]]$par[5], ML2[[i]]$par[6], ML2[[i]]$par[7], log(xx50)) #
+		yy90<- curve2(ML2[[i]]$par[1], ML2[[i]]$par[2], ML2[[i]]$par[3], ML2[[i]]$par[5], ML2[[i]]$par[6], ML2[[i]]$par[7], log(xx90)) #
+#
+		yy50 <- (yy50+min(data[[i]]$x))#
+		yy50[yy50  < 0] <-0#
+		yy50[yy50 ==NaN] <- 0#
+		id50 <- order(xx50)#
+		if (length(xx50) > 1){#
+			AUC50 <- sum(diff(xx50[id50])*rollmean(yy50[id50], 2))		#
+			}#
+		else{#
+			AUC50 <- 0#
+			}#
+#
+		yy90 <- (yy90+min(data[[i]]$x))#
+		yy90[yy90  < 0] <-0#
+		yy90[yy90 ==NaN] <- 0#
+		id90 <- order(xx90)#
+		if (length(xx90) > 1){#
+			AUC90 <- sum(diff(xx90[id90])*rollmean(yy90[id90], 2))		#
+			}#
+		else{#
+			AUC90 <- 0#
+			}#
+#
+		return(list(ZOI = ZOI, minHalo = minHalo, AUC50= AUC90, AUC50= AUC90, maxAUC = maxAUC))	#
+		}#
+	if(slope < 1){#
+		minHalo <- 0#
+		ZOI <- 0#
+		yy <- (yy+min(data[[i]]$x))*ZOIcor[i]#
+		yy[yy < 0] <- 0#
+		xx <- exp(xx)#
+		id <- order(xx)#
+		AUC <- sum(diff(xx[id])*rollmean(yy[id], 2))#
+		AUC50 <- AUC  #Not sure this is what should be done, stopgap#
+		AUC90 <- AUC  #Not sure this is what should be done, stopgap #
+		maxAUC <- 1#
+	}#
+	return(list(ZOI = ZOI, minHalo = minHalo, AUC50= AUC50, AUC90 = AUC90, maxAUC = maxAUC))		#
+}
+d <- read.csv("/Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/excel/CarlOverviewMIC.csv", sep=",")#
+ddn <- split(d, d$Strain)#
+#
+plotEE <- function(strain, name="", plotX = FALSE){#
+	plot(ddn[[strain]]$Day, log(ddn[[strain]]$FLC.level), type="n", xaxt="n", yaxt="n", ylab="", xlab="", cex=1.5, ylim=c(log(0.5), log(300)))#
+	axis(1, labels=FALSE)#
+		for (i in ddn[[strain]]$Line){#
+			sub <- subset(ddn[[strain]], Line ==i)#
+			text(sub$Day[length(sub$Day)], log(sub$FLC.level)[length(sub$Day)], "X", col="red",  cex=1.5, font=2) #
+			points(sub$Day, log(sub$FLC.level), type="b")#
+			}#
+	if(plotX) axis(1)#
+	axis(2, las=2, labels=c("0.5", "2", "8", "32", "128"), at=c(log(0.5), log(2), log(8), log(32), log(128)))#
+	mtext(name, side=3, adj=0.01, font=2)#
+}#
+#
+FHT <- c(2, 10, 2, 7, 11, 10)#
+SCT <- c(14, 5, 8, 14, 4, 9)#
+T1 <- c(8, 5, 11, 9, 1, 14)
+pdf("/Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/transferResultsDemo.pdf", width=6, height=5)#
+plotEE(1, "Strain A", plotX = TRUE)#
+mtext("Day of transfer", side=1, line=2.5)#
+mtext(expression(paste("Fluconazole concentration (", mu, "g/mL)", sep="")), side=2, line=2.5, outer=FALSE)#
+dev.off()#
+system("open /Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/transferResultsDemo.pdf")
+d <- read.csv("/Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/excel/CarlOverviewMIC.csv", sep=",")#
+ddn <- split(d, d$Strain)#
+#
+plotEE <- function(strain, name="", plotX = FALSE){#
+	plot(ddn[[strain]]$Day, log(ddn[[strain]]$FLC.level), type="n", xaxt="n", yaxt="n", ylab="", xlab="", cex=1.5, ylim=c(log(0.5), log(300)))#
+	axis(1, labels=FALSE)#
+		for (i in ddn[[strain]]$Line){#
+			sub <- subset(ddn[[strain]], Line ==i)#
+			text(sub$Day[length(sub$Day)], log(sub$FLC.level)[length(sub$Day)], "X", col="red",  cex=1.5, font=2) #
+			points(sub$Day, log(sub$FLC.level), type="b")#
+			}#
+	if(plotX) axis(1)#
+	axis(2, las=2, labels=c("0.5", "2", "8", "32", "128"), at=c(log(0.5), log(2), log(8), log(32), log(128)))#
+	mtext(name, side=3, adj=0.01, font=2)#
+}#
+#
+FHT <- c(2, 10, 2, 7, 11, 10)#
+SCT <- c(14, 5, 8, 14, 4, 9)#
+T1 <- c(8, 5, 11, 9, 1, 14)#
+#
+pdf("/Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/transferResultsDemo.pdf", width=6, height=5)#
+plotEE(1, "Strain A", plotX = TRUE)#
+mtext("Day of transfer", side=1, line=2.5)#
+mtext(expression(paste("Fluconazole concentration (", mu, "g/mL)", sep="")), side=2, line=2.5, outer=FALSE)#
+dev.off()#
+system("open /Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/transferResultsDemo.pdf")
+pdf("/Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/transferResults.pdf", width=6, height=4.5)#
+par(mfrow=c(3, 1), mar=c(1,1,2,1), oma=c(4, 4, 1, 1))#
+plotEE(1, "Strain A")#
+plotEE(2, "Strain B")#
+plotEE(3,  "Strain C", plotX=TRUE)#
+mtext("Day of transfer", side=1, line=2.5)#
+mtext(expression(paste("Fluconazole concentration (", mu, "g/mL)", sep="")), side=2, line=1.5, outer=TRUE)#
+dev.off()#
+system("open /Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/transferResults.pdf")
+pdf("/Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/MICResultsDemo.pdf", width=6, height=5)#
+plotMIC(1, "Strain A", plotX = TRUE)#
+abline(h=log(2), lty=2)#
+mtext("MIC (fitness)", side=2, line=3, outer=FALSE)#
+mtext(expression(paste("Fluconazole concentration in medium (", mu, "g/mL)", sep="")), side=1, line=3, outer=FALSE)#
+dev.off()#
+system("open /Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/MICResultsDemo.pdf")
+plotMIC <- function(strain, name, plotX = FALSE, plotY = TRUE){#
+	plot(log(ddn[[strain]]$FLC.level), log(ddn[[strain]]$MIC1), type="n", xaxt="n", yaxt="n", ylab="", xlab="", cex=1.5, ylim=c(log(0.1), log(280)), xlim=c(log(0.5), log(160)))#
+	axis(1, las=2, labels=FALSE, at=c(log(0.5), log(2), log(8), log(32), log(128)))#
+		for (i in ddn[[strain]]$Line){#
+			sub <- subset(ddn[[strain]], Line ==i)#
+#			text(log(sub$FLC.level)[length(sub$MIC1)], log(sub$MIC1)[length(sub$MIC1)], "o", col="red",  cex=1.5, font=2) #
+			points(log(sub$FLC.level), log(sub$MIC1), type="b")#
+			}#
+	if(plotY) axis(2, las=2, labels=c("0.125", "0.5", "2", "8", "32", "128", ">256"), at=c(log(0.125), log(0.5), log(2), log(8), log(32), log(128), log(275)))#
+	if(plotX) axis(1, labels=c("0.5", "2", "8", "32", "128"), at=c(log(0.5), log(2), log(8), log(32), log(128)))#
+	mtext(name, side=3, adj=0.01, font=2)	#
+}#
+#
+sub2 <- sub <- subset(ddn[[1]], Line ==2)
+pdf("/Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/MICResultsDemo.pdf", width=6, height=5)#
+plotMIC(1, "Strain A", plotX = TRUE)#
+abline(h=log(2), lty=2)#
+mtext("MIC (fitness)", side=2, line=3, outer=FALSE)#
+mtext(expression(paste("Fluconazole concentration in medium (", mu, "g/mL)", sep="")), side=1, line=3, outer=FALSE)#
+dev.off()#
+system("open /Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/MICResultsDemo.pdf")
+pdf("/Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/MICResultsFH-2.pdf", width=6, height=4)#
+plot(log(sub2$FLC.level), log(sub2$MIC1), type="b", xaxt="n", yaxt="n", ylab="", xlab="", cex=1.5, ylim=c(log(0.25), log(280)), xlim=c(log(2), log(160)))#
+axis(2, las=2, labels=c("0.125", "0.5", "2", "8", "32", "128", "256"), at=c(log(0.125), log(0.5), log(2), log(8), log(32), log(128), log(256)))#
+axis(1, labels=c("0.5", "2", "8", "32", "128"), at=c(log(0.5), log(2), log(8), log(32), log(128)))#
+mtext("MIC (fitness)", side=2, line=3, outer=FALSE)#
+mtext(expression(paste("Fluconazole concentration in medium (", mu, "g/mL)", sep="")), side=1, line=3, outer=FALSE)#
+dev.off()#
+system("open /Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/MICResultsFH-2.pdf")
+pdf("/Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/MICResultsDemo.pdf", width=6, height=5)#
+plotMIC(1, "Strain A", plotX = TRUE)#
+abline(h=log(2), lty=2)#
+mtext("MIC (fitness)", side=2, line=3, outer=FALSE)#
+mtext(expression(paste("Fluconazole concentration in medium (", mu, "g/mL)", sep="")), side=1, line=3, outer=FALSE)#
+dev.off()#
+system("open /Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/MICResultsDemo.pdf")#
+#
+pdf("/Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/MICResults.pdf", width=6, height=4.75)#
+par(mfrow=c(3, 1), mar=c(1,1,1,1), oma=c(4, 4, 1, 1))#
+plotMIC(1, "Strain A")#
+abline(h=log(2), lty=2)#
+plotMIC(2, "Strain B")#
+points(c(log(16), log(64)), c(log(5), log(96)), type="l", lty=2)#
+points(c(log(2), log(8)), c(log(0.19), log(0.16)), type="l", lty=2)#
+abline(h=log(0.5), lty=2)#
+plotMIC(3, "Strain C", plotX=TRUE)#
+abline(h=log(0.5), lty=2)#
+mtext("MIC (fitness)", side=2, line=2.5, outer=TRUE)#
+mtext(expression(paste("Fluconazole concentration (", mu, "g/mL)", sep="")), side=1, line=2, outer=TRUE)#
+dev.off()#
+system("open /Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/MICResults.pdf")
+pdf("/Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/MICResults.pdf", width=6, height=4.75)#
+par(mfrow=c(3, 1), mar=c(1,1,1,1), oma=c(4, 4, 1, 1))#
+plotMIC(1, "Strain A")#
+abline(h=log(4), lty=2)#
+plotMIC(2, "Strain B")#
+points(c(log(16), log(64)), c(log(5), log(96)), type="l", lty=2)#
+points(c(log(2), log(8)), c(log(0.19), log(0.16)), type="l", lty=2)#
+abline(h=log(0.5), lty=2)#
+plotMIC(3, "Strain C", plotX=TRUE)#
+abline(h=log(0.5), lty=2)#
+mtext("MIC (fitness)", side=2, line=2.5, outer=TRUE)#
+mtext(expression(paste("Fluconazole concentration (", mu, "g/mL)", sep="")), side=1, line=2, outer=TRUE)#
+dev.off()#
+system("open /Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/MICResults.pdf")
+pdf("/Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/MICResultsDemo.pdf", width=6, height=5)#
+plotMIC(1, "Strain A", plotX = TRUE)#
+abline(h=log(4), lty=2)#
+mtext("MIC (fitness)", side=2, line=3, outer=FALSE)#
+mtext(expression(paste("Fluconazole concentration in medium (", mu, "g/mL)", sep="")), side=1, line=3, outer=FALSE)#
+dev.off()#
+system("open /Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/MICResultsDemo.pdf")
+pdf("/Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/MICResultsFH-2.pdf", width=6, height=4)#
+plot(log(sub2$FLC.level), log(sub2$MIC1), type="b", xaxt="n", yaxt="n", ylab="", xlab="", cex=1.5, ylim=c(log(0.25), log(280)), xlim=c(log(4), log(160)))#
+axis(2, las=2, labels=c("0.125", "0.5", "2", "8", "32", "128", "256"), at=c(log(0.125), log(0.5), log(2), log(8), log(32), log(128), log(256)))#
+axis(1, labels=c("0.5", "2", "8", "32", "128"), at=c(log(0.5), log(2), log(8), log(32), log(128)))#
+mtext("MIC (fitness)", side=2, line=3, outer=FALSE)#
+mtext(expression(paste("Fluconazole concentration in medium (", mu, "g/mL)", sep="")), side=1, line=3, outer=FALSE)#
+dev.off()#
+system("open /Users/acgerstein/Documents/Postdoc/Research/Clinical_isolates/Carl/figures/MICResultsFH-2.pdf")
+?diff
+load("/Users/acgerstein/Documents/Postdoc/Things from:for others/UMN/Ben/test.RData")
+.RData
+library(devtools)
+install_github("acgerstein/diskImageR")
+library("diskImageR")
+library(rmarkdown)#
+library(knitr)
+setwd("~/Documents/Postdoc/Research")
+setwd("diskImageR/vignettes/")
+setwd("~/Documents/Postdoc/Research")
+devtools:check()
+devtools::check()
+setwd("diskImageR/")
+devtools::check()
+devtools::build_vignettes()
+dir()
+devtools::build_vignettes()
+manyReps <- read.csv("data/manyReps_df.csv")
+manyReps
+?system.file
+devtools::build_vignettes()
+manyReps <- system.file('data', 'manyReps.csv', package = 'mypackage')
+manyReps
+manyReps <- system.file("data", "manyReps.csv", package = "diskImageR")
+manyReps
+manyReps <- system.file("manyReps.csv", "data", package = "diskImageR")
+manyReps
+system.fil()
+system.file()
+system.file(package="diskImageR")
+manyReps <- system.file("../data", "manyReps.csv", package = "diskImageR")
+manyReps
+library(diskImageR(
+)
+library(diskImageR)
+system.file(package="diskImageR")
+system.file("..", package="diskImageR")
+system.file("../data/", package="diskImageR")
+dir(system.file("../data/", package="diskImageR"))
+system.file("../data/", manyReps_df.csv, package="diskImageR"))
+system.file("../data/", manyReps_df.csv, package="diskImageR")
+system.file("../data/", "manyReps_df.csv", package="diskImageR")
+devtools::build_vignettes()
+system.file(package="diskImageR")
+dir(system.file(package="diskImageR"))
+dir(system.file("..", package="diskImageR"))
+dir(system.file("../vignettes/", package="diskImageR"))
+dir(system.file("../vignettes/pictures/", package="diskImageR"))
+devtools::build_vignettes()
+system.file("../vignettes/", package="diskImageR")
+dir(system.file("../vignettes/", package="diskImageR"))
+dir(system.file("../vignettes/pictures/", package="diskImageR"))
+devtools::build_vignettes()
+?system.fil
+?system.file
+?system.dir
+??system.dir
+??system directory
+?system.file
+system.file("diskImageR")
+system.file(package="diskImageR")
+paste(system.file("../vignettes/pictures", package="diskImageR"), "/", sep="")
+devtools::build_vignettes()
+manyReps <- system.file("../data/", "manyReps_df.csv", package="diskImageR")
+manyReps
+manyReps <- read.csv(system.file("../data/", "manyReps_df.csv", package="diskImageR"))
+manyReps
+devtools::build_vignettes()
+devtools::check("diskImageR")
+devtools::check()
+system.file(package="diskImageR")
+dir(system.file(package="diskImageR"))
+dir(system.file("pictures", package="diskImageR"))
+devtools::check()
+file.path(system.file("inst", package="diskImageR"),"pictures", "")
+devtools::check()
+?plotRaw
+devtools::check()
+check()
+render("DiskAssay.rmd", html_vignette(toc=TRUE, fig_width = 6, fig_height = 3))
+dir()
+setwd("..")
+render("DiskAssay.rmd", html_vignette(toc=TRUE, fig_width = 6, fig_height = 3))
+setwd("diskImageR/inst/doc/")
+dir()
+render("DiskAssay.rmd", html_vignette(toc=TRUE, fig_width = 6, fig_height = 3))
+setwd("../../vignettes/")
+render("DiskAssay.rmd", html_vignette(toc=TRUE, fig_width = 6, fig_height = 3))

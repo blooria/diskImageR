@@ -1,11 +1,11 @@
 #' Averages photographs of the same type
 
-#' @description Uses a user-supplied variane measure (currently supported: standard error, coefficient of variation, built-in R functions (e.g., sd) to calculate variance among photographs of the same type
+#' @description Uses a user-supplied variance measure (currently supported: standard error, coefficient of variation, built-in R functions (e.g., sd) to calculate variance among photographs of the same type
 
 #' @inheritParams maxLik
-#' @param replicate a character vector indicating which the column names that contain which factors to use. Defaults to c("lines", "type"). Note that if the typeVector name was changed in \code{createDataframe} this should be reflected here.
+#' @param replicate a character vector indicating which the column names that contain which factors to use. Defaults to c("line", "type"). Note that if the typeVector name was changed in \code{createDataframe} this should be reflected here.
 #' @param varFunc what type of variation measurment to perform. Currently supports \code{varFunc} = "se" to calculate the standard error, \code{varFun} = "cv" to calculate the coefficient of variation or any built-in R function (e.g., sd). 
-#' @param overwrite a logical value indicating whether to overwrite existing aggregate dataframe for the same project name. This allows you to save different dataframes averaging across factors or using different variance measures
+#' @param overwrite a logical value indicating whether to overwrite existing aggregate dataframe for the same project name. This allows you to save different dataframes averaging across different factors or using different variance measures
 
 #' @return A dataframe "projectName.ag" is saved to the global environment and a .csv file "projectName_ag.csv" is exported to the "parameter_files" directory. 
 
@@ -14,7 +14,7 @@
 #' @author Aleeza C. Gerstein
 
 
-aggregateData <- function(projectName, replicate = c("lines", "type"), varFunc = "se", overwrite = TRUE){
+aggregateData <- function(projectName, varFunc = "se", replicate = c("line", "type"), overwrite = TRUE){
 	dataframe <- eval(parse(text=paste(projectName, ".df", sep="")))
 	
 	if (varFunc == "se") var <- se
@@ -58,7 +58,6 @@ aggregateData <- function(projectName, replicate = c("lines", "type"), varFunc =
 
 	cat(paste("\n", agName, " has been written to the global environment", sep=""))
 	cat(paste("\n\nSaving file: ", filename, sep=""))
-	cat(paste("\n",  agName, " can be opened in MS Excel (save as .xls file if desired)",  sep=""))
 	
 	 assign(agName, ag, envir=globalenv())
 	}
